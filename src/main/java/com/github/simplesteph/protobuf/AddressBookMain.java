@@ -1,11 +1,14 @@
 package com.github.simplesteph.protobuf;
 
+import com.example.tutorial.AddressBookProtos;
+import com.google.protobuf.Timestamp;
 import example.simple.Simple.SimpleMessage;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Arrays;
 
 public class AddressBookMain {
@@ -14,27 +17,28 @@ public class AddressBookMain {
 
         System.out.println("Hello world!");
 
-        SimpleMessage.Builder builder = SimpleMessage.newBuilder();
+        // preparing to build a Person message
+        AddressBookProtos.Person.Builder builder = AddressBookProtos.Person.newBuilder();
 
-        // simple fields
+        // preparing a Timestamp object to inject into the metadata (may not explicitly need this?)
+        Instant time = Instant.now();
+        Timestamp timestamp = Timestamp.newBuilder().setSeconds(time.getEpochSecond())
+                .setNanos(time.getNano()).build();
+
+        // person fields (could try adding to an AddressBook in the future)
         builder.setId(42)  // set the id field
-                .setIsSimple(true)  // set the is_simple field
-                .setName("My Simple Message Name"); // set the name field
-
-        // repeated field
-        builder.addSampleList(1)
-                .addSampleList(2)
-                .addSampleList(3)
-                .addAllSampleList(Arrays.asList(4, 5, 6));
+                .setEmail("brad@coolemail.com")  // set the email field
+                .setName("Brad") // set the name field
+                .setLastUpdated(timestamp);
 
         System.out.println(builder.toString());
 
-        SimpleMessage message = builder.build();
+        AddressBookProtos.Person person = builder.build();
 
         // write the protocol buffers binary to a file
         try {
-            FileOutputStream outputStream = new FileOutputStream("simple_message.bin");
-            message.writeTo(outputStream);
+            FileOutputStream outputStream = new FileOutputStream("person_message.bin");
+            person.writeTo(outputStream);
             outputStream.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -47,9 +51,9 @@ public class AddressBookMain {
 
         try {
             System.out.println("Reading from file... ");
-            FileInputStream fileInputStream = new FileInputStream("simple_message.bin");
-            SimpleMessage messageFromFile = SimpleMessage.parseFrom(fileInputStream);
-            System.out.println(messageFromFile);
+            FileInputStream fileInputStream = new FileInputStream("person_message.bin");
+            AddressBookProtos.Person personFromFile = AddressBookProtos.Person.parseFrom(fileInputStream);
+            System.out.println(personFromFile);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
